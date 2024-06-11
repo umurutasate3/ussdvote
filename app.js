@@ -46,14 +46,14 @@ app.post('/ussd', (req, res) => {
         1. UMURUTASATE Claude
         2. KABERA Jean Darmsene
         3.RUGIRA Claude
-        4. UMURISA J'Darc`;
+        4. UMURISA Jeanne Darc`;
         sendResponse(res, response);
     } else if (text == '2') {
         response = `CON Select candidate
         1. UMURUTASATE Claude
         2. KABERA Jean Darmsene
         3.RUGIRA Claude
-        4. UMURISA J'Darc`;
+        4. UMURISA Jeanne Darc`;
         sendResponse(res, response);
 
         //FOR KINYARWANDA LANGUAGE
@@ -76,7 +76,7 @@ app.post('/ussd', (req, res) => {
             2.Oya`;
         sendResponse(res, response);
     } else if (text == '1*4') {
-        candidate = 'UMURISA J'Darc';
+        candidate = 'UMURISA Jeanne Darc';
         response = `CON Emeza gutora ${candidate}
             1.Yego
             2.Oya`;
@@ -102,7 +102,7 @@ app.post('/ussd', (req, res) => {
             2.No`;
         sendResponse(res, response);
     } else if (text == '2*4') {
-        candidate = 'UMURISA J'Darc';
+        candidate = 'UMURISA Jeanne Darc';
         response = `CON Confirm to vote ${candidate}
             1.Yes
             2.No`;
@@ -123,7 +123,7 @@ app.post('/ussd', (req, res) => {
         checkVote(res, sessionId, serviceCode, phoneNumber, text, candidate, language);
     } else if (text == '1*4*1') {
         language = 'kinyarwanda';
-        candidate = 'UMURISA J'Darc';
+        candidate = 'UMURISA Jeanne Darc';
         checkVote(res, sessionId, serviceCode, phoneNumber, text, candidate, language);
 
         //VOTING (YES) IN ENGLISH
@@ -141,7 +141,7 @@ app.post('/ussd', (req, res) => {
         checkVote(res, sessionId, serviceCode, phoneNumber, text, candidate, language);
     } else if (text == '2*4*1') {
         language = 'english';
-        candidate = 'UMURISA J'Darc';
+        candidate = 'UMURISA Jeanne Darc';
         checkVote(res, sessionId, serviceCode, phoneNumber, text, candidate, language);
 
         //IF USER SELECTED NO
