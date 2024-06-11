@@ -36,7 +36,7 @@ app.post('/ussd', (req, res) => {
     if (text == '') {
         // This is the first request. Note how we start the response with CON
         response = `CON Welcome to voting system!
-           Murakaza neza kurubuga rw'amatora!
+           Murakaza neza kurubuga rw'vote!
         1. Kinyarwanda
         2. English`;
         sendResponse(res, response);
@@ -169,7 +169,7 @@ app.post('/ussd', (req, res) => {
     }
 
     function saveVote(res, sessionId, serviceCode, phoneNumber, text, candidate) {
-        const sql = 'INSERT INTO amatora (sessionId, serviceCode, phoneNumber, text, candidate) VALUES (?, ?, ?, ?, ?)';
+        const sql = 'INSERT INTO vote (sessionId, serviceCode, phoneNumber, text, candidate) VALUES (?, ?, ?, ?, ?)';
         db.query(sql, [sessionId, serviceCode, phoneNumber, text, candidate], (err, result) => {
             if (err) {
                 console.error('Error saving vote:', err.message);
@@ -184,7 +184,7 @@ app.post('/ussd', (req, res) => {
     }
 
     function checkVote(res, sessionId, serviceCode, phoneNumber, text, candidate, language) {
-        const sql = 'SELECT * FROM amatora WHERE phoneNumber = ?';
+        const sql = 'SELECT * FROM vote WHERE phoneNumber = ?';
         db.query(sql, [phoneNumber], (err, result) => {
             if (err) {
                 console.error('Error fetching data:', err.message);
@@ -209,7 +209,7 @@ app.post('/ussd', (req, res) => {
     }
 
     function getVotes(res,language) {
-        const sql = 'SELECT candidate, COUNT(*) AS repetition_times FROM amatora GROUP BY candidate';
+        const sql = 'SELECT candidate, COUNT(*) AS repetition_times FROM vote GROUP BY candidate';
         db.query(sql, (err, results) => {
             if (err) {
                 console.error('Error fetching votes:', err.message);
