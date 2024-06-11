@@ -1,149 +1,257 @@
 const express = require('express');
-const bodyParser = require('body-parser');
-const mysql = require('mysql');
-
+const mysql = require('mysql2');
 const app = express();
-const PORT = process.env.PORT || 3000;
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
-app.use(bodyParser.urlencoded({ extended: false }));
-
-// Database connection details
-const dbConfig = {
+const db = mysql.createConnection({
     host: 'bsou6roinuscdyb4lihj-mysql.services.clever-cloud.com',
     user: 'ubj5vfv0llpepqn4',
-    password: 'H5k62TkRFCpmfFiWnM0S', // Replace with your MySQL password
+    password: 'H5k62TkRFCpmfFiWnM0S',
     database: 'bsou6roinuscdyb4lihj'
-};
+});
 
-let db;
+db.connect(err => {
+    if (err) throw err;
+    console.log('Connected to the MySQL database');
+});
 
-// Function to handle connection
-function handleDisconnect() {
-    db = mysql.createConnection(dbConfig);
-
-    db.connect(err => {
-        if (err) {
-            console.error('Error connecting to database:', err.stack);
-            setTimeout(handleDisconnect, 2000); // Reconnect after 2 seconds
-        } else {
-            console.log('Connected to database.');
-        }
-    });
-
-    db.on('error', err => {
-        console.error('Database error:', err.stack);
-        if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-            handleDisconnect(); // Reconnect on connection loss
-        } else {
-            throw err;
-        }
-    });
-}
-
-// Initial connection
-handleDisconnect();
-
-// In-memory storage for votes (for simplicity)
-let votes = {
-    "ISHIMWE. ": 0,
-    "MUGISHA. ": 0,
-    "KWIZERA. ": 0,
-    "ISHEJA. ": 0,
-    "HABIMANA. ": 0 
-};
-
-// In-memory storage for user data (for simplicity)
-let userNames = {};
-let voters = new Set(); // Set to track phone numbers that have already voted
-let userLanguages = {}; // Object to store the language preference of each user
+app.get("/api/test", function (req, res) {
+    res.send("test request");
+});
 
 app.post('/ussd', (req, res) => {
+    // Read the variables sent via POST from our API
+    const {
+        sessionId,
+        serviceCode,
+        phoneNumber,
+        text,
+    } = req.body;
+
     let response = '';
+    let candidate = '';
+    let language = ''; 
 
-    // Extract USSD input
-    const { sessionId, serviceCode, phoneNumber, text } = req.body;
+    if (text == '') {
+        // This is the first request. Note how we start the response with CON
+        response = `CON Welcome to voting system!
+           Murakaza neza kurubuga rw'amatora!
+        1. Kinyarwanda
+        2. English`;
+        sendResponse(res, response);
+    } else if (text == '1') {
+        // Business logic for first level response
+        response = `CON Hitamo Umukandida
+        1. Kamanzi Eric
+        2. Habimana Yves
+        3. Itangishaka Claude
+        4. Umwali Aliance`;
+        sendResponse(res, response);
+    } else if (text == '2') {
+        response = `CON Select candidate
+        1. Kamanzi Eric
+        2. Habimana Yves
+        3. Itangishaka Claude
+        4. Umwali Aliance`;
+        sendResponse(res, response);
 
-    // Parse user input
-    const userInput = text.split('*').map(option => option.trim());
+        //FOR KINYARWANDA LANGUAGE
+    } else if (text == '1*1') {
+        candidate = 'Kamanzi Eric';
+        response = `CON Emeza gutora ${candidate}
+            1.Yego
+            2.Oya`;
+        sendResponse(res, response);
+    } else if (text == '1*2') {
+        candidate = 'Habimana Yves';
+        response = `CON Emeza gutora ${candidate}
+            1.Yego
+            2.Oya`;
+        sendResponse(res, response);
+    } else if (text == '1*3') {
+        candidate = 'Itangishaka Claude';
+        response = `CON Emeza gutora ${candidate}
+            1.Yego
+            2.Oya`;
+        sendResponse(res, response);
+    } else if (text == '1*4') {
+        candidate = 'Umwali Aliance';
+        response = `CON Emeza gutora ${candidate}
+            1.Yego
+            2.Oya`;
+        sendResponse(res, response);
 
-    // Determine next action based on user input
-    if (userInput.length === 1 && userInput[0] === '') {
-        // First level menu: Language selection
-        response = `CON Welcome to Mayor voting booth\n`;
-        response += `1. English\n`;
-        response += `2. Kinyarwanda`;
-    } else if (userInput.length === 1 && userInput[0] !== '') {
-        // Save user's language choice and move to the name input menu
-        userLanguages[phoneNumber] = userInput[0] === '1' ? 'en' : 'rw';
-        response = userLanguages[phoneNumber] === 'en' ? 
-            `CON Please enter your name:` : 
-            `CON Injira izina ryawe:`;
-    } else if (userInput.length === 2) {
-        // Save user's name
-        userNames[phoneNumber] = userInput[1];
+        //FOR ENGLISH USERS
+    } else if (text == '2*1') {
+        candidate = 'Kamanzi Eric';
+        response = `CON Confirm to vote ${candidate}
+            1.Yes
+            2.No`;
+        sendResponse(res, response);
+    } else if (text == '2*2') {
+        candidate = 'Habimana Yves';
+        response = `CON Confirm to vote ${candidate}
+            1.Yes
+            2.No`;
+        sendResponse(res, response);
+    } else if (text == '2*3') {
+        candidate = 'Itangishaka Claude';
+        response = `CON Confirm to vote ${candidate}
+            1.Yes
+            2.No`;
+        sendResponse(res, response);
+    } else if (text == '2*4') {
+        candidate = 'Umwali Aliance';
+        response = `CON Confirm to vote ${candidate}
+            1.Yes
+            2.No`;
+        sendResponse(res, response);
 
-        // Third level menu: Main menu
-        response = userLanguages[phoneNumber] === 'en' ? 
-            `CON Hi ${userNames[phoneNumber]}, choose an option:\n1. Vote Candidate\n2. View Votes` : 
-            `CON Muraho ${userNames[phoneNumber]}, hitamo:\n1. Tora umukandida\n2. Reba amajwi`;
-    } else if (userInput.length === 3) {
-        if (userInput[2] === '1') {
-            // Check if the phone number has already voted
-            if (voters.has(phoneNumber)) {
-                response = userLanguages[phoneNumber] === 'en' ? 
-                    `END You have already voted. Thank you!` : 
-                    `END Waratoye. Murakoze!`;
-            } else {
-                // Voting option selected
-                response = userLanguages[phoneNumber] === 'en' ? 
-                    `CON Select a candidate:\n1. Raymond IGABINEZA\n2. Florence UMUTONIWASE\n3. Jean Paul KWIBUKA\n4. Gaella UWAYO\n5. Danny HABIMANA` : 
-                    `CON Hitamo umukandida:\n1. Raymond IGABINEZA\n2. Florence UMUTONIWASE\n3. Jean Paul KWIBUKA\n4. Gaella UWAYO\n5. Danny HABIMANA`;
-            }
-        } else if (userInput[2] === '2') {
-            // View votes option selected
-            response = userLanguages[phoneNumber] === 'en' ? 
-                `END Votes:\n` : 
-                `END Amajwi:\n`;
-            for (let candidate in votes) {
-                response += `${candidate}: ${votes[candidate]} votes\n`;
-            }
-        }
-    } else if (userInput.length === 4) {
-        // Fourth level menu: Voting confirmation
-        let candidateIndex = parseInt(userInput[3]) - 1;
-        let candidateNames = Object.keys(votes);
-        if (candidateIndex >= 0 && candidateIndex < candidateNames.length) {
-            votes[candidateNames[candidateIndex]] += 1;
-            voters.add(phoneNumber); // Mark this phone number as having voted
-            response = userLanguages[phoneNumber] === 'en' ? 
-                `END Thank you for voting for ${candidateNames[candidateIndex]}!` : 
-                `END Murakoze gutora ${candidateNames[candidateIndex]}!`;
+        //VOTING (YES) IN KINYARWANDA
+    } else if (text == '1*1*1') {
+        language = 'kinyarwanda';
+        candidate = 'Kamanzi Eric';
+        checkVote(res, sessionId, serviceCode, phoneNumber, text, candidate, language);
+    } else if (text == '1*2*1') {
+        language = 'kinyarwanda';
+        candidate = 'Habimana Yves';
+        checkVote(res, sessionId, serviceCode, phoneNumber, text, candidate, language);
+    } else if (text == '1*3*1') {
+        language = 'kinyarwanda';
+        candidate = 'Itangishaka Claude';
+        checkVote(res, sessionId, serviceCode, phoneNumber, text, candidate, language);
+    } else if (text == '1*4*1') {
+        language = 'kinyarwanda';
+        candidate = 'Umwali Aliance';
+        checkVote(res, sessionId, serviceCode, phoneNumber, text, candidate, language);
 
-            // Insert voting record into the database
-            const voteData = {
-                session_id: sessionId,
-                phone_number: phoneNumber,
-                user_name: userNames[phoneNumber],
-                language_used: userLanguages[phoneNumber],
-                voted_candidate: candidateNames[candidateIndex]
-            };
+        //VOTING (YES) IN ENGLISH
+    } else if (text == '2*1*1') {
+        language = 'english';
+        candidate = 'Kamanzi Eric';
+        checkVote(res, sessionId, serviceCode, phoneNumber, text, candidate, language);
+    } else if (text == '2*2*1') {
+        language = 'english';
+        candidate = 'Habimana Yves';
+        checkVote(res, sessionId, serviceCode, phoneNumber, text, candidate, language);
+    } else if (text == '2*3*1') {
+        language = 'english';
+        candidate = 'Itangishaka Claude';
+        checkVote(res, sessionId, serviceCode, phoneNumber, text, candidate, language);
+    } else if (text == '2*4*1') {
+        language = 'english';
+        candidate = 'Umwali Aliance';
+        checkVote(res, sessionId, serviceCode, phoneNumber, text, candidate, language);
 
-            const query = 'INSERT INTO votes SET ?';
-            db.query(query, voteData, (err, result) => {
-                if (err) {
-                    console.error('Error inserting data into database:', err.stack);
-                }
-            });
-        } else {
-            response = userLanguages[phoneNumber] === 'en' ? 
-                `END Invalid selection. Please try again.` : 
-                `END Hitamo idakwiye. Ongera mugerageze.`;
-        }
+        //IF USER SELECTED NO
+    } else if(text == '1*1*1*20' || text == '1*2*1*20' || text == '1*3*1*20' || text == '1*4*1*20'){
+        language = "kinyarwanda";
+        getVotes(res,language);
+    }else if(text == '2*1*1*20' || text == '2*2*1*20' || text == '2*3*1*20' || text == '2*4*1*20'){
+        language = "english";
+        getVotes(res,language);
+    }else if(text == '1*1*1*0' || text == '1*2*1*0' || text == '1*3*1*0' || text == '1*4*1*0'){
+        language = "kinyarwanda";
+        ext(res,language);
+    }else if(text == '2*1*1*0' || text == '2*2*1*0' || text == '2*3*1*0' || text == '2*4*1*0'){
+        language = "english";
+        ext(res,language);
+    } else if (text == '1*1*2' || text == '1*2*2' || text == '1*3*2' || text == '1*4*2') {
+        response = 'END Mwakoze Gukoresh iyi service ';
+        sendResponse(res, response);
+    } else if (text == '2*1*2' || text == '2*2*2' || text == '2*3*2' || text == '2*4*2') {
+        response = 'END Thank you for using our services';
+        sendResponse(res, response);
+    } else {
+        response = `END Invalid input!`;
+        sendResponse(res, response);
     }
 
-    res.send(response);
+    function saveVote(res, sessionId, serviceCode, phoneNumber, text, candidate) {
+        const sql = 'INSERT INTO amatora (sessionId, serviceCode, phoneNumber, text, candidate) VALUES (?, ?, ?, ?, ?)';
+        db.query(sql, [sessionId, serviceCode, phoneNumber, text, candidate], (err, result) => {
+            if (err) {
+                console.error('Error saving vote:', err.message);
+                response = `END Error saving vote. Please try again.`;
+                sendResponse(res, response);
+                return; // Stop execution if there's an error
+            }
+            console.log('Vote saved successfully');
+            response = `END Voting ${candidate} successful!`;
+            sendResponse(res, response);
+        });
+    }
+
+    function checkVote(res, sessionId, serviceCode, phoneNumber, text, candidate, language) {
+        const sql = 'SELECT * FROM amatora WHERE phoneNumber = ?';
+        db.query(sql, [phoneNumber], (err, result) => {
+            if (err) {
+                console.error('Error fetching data:', err.message);
+                response = `END Error checking vote. Please try again.`;
+                sendResponse(res, response);
+                return; // Stop execution if there's an error
+            }
+            if (result.length > 0) {
+                response = language === 'kinyarwanda'
+                    ? `CON Wamaze gutora! Hitamo:
+                    20. Reba amajwi
+                    0. Sohoka`
+                    : `CON You have already voted! Choose:
+                    20. View votes
+                    0. Exit`;
+                sendResponse(res, response);
+            } else {
+                saveVote(res, sessionId, serviceCode, phoneNumber, text, candidate);
+            }
+            console.log('Query executed successfully!');
+        });
+    }
+
+    function getVotes(res,language) {
+        const sql = 'SELECT candidate, COUNT(*) AS repetition_times FROM amatora GROUP BY candidate';
+        db.query(sql, (err, results) => {
+            if (err) {
+                console.error('Error fetching votes:', err.message);
+                response = `END Error fetching votes. Please try again.`;
+                sendResponse(res, response);
+                return; // Stop execution if there's an error
+            }
+    
+            let votesResponse = '';
+            let counter = 1;
+    
+            if (results.length > 0) {
+                results.forEach(row => {
+                    const candidate = row.candidate;
+                    const votes = row.repetition_times;
+                    votesResponse += `${counter}. ${candidate}: ${votes}\n`;
+                    counter++;
+                });
+            } else {
+                votesResponse = 'No votes recorded yet.';
+            }
+    
+            // Send the response
+            response = language === 'kinyarwanda'
+                ? `END Amajwi:\n${votesResponse}`
+                : `END Votes:\n${votesResponse}`;
+            sendResponse(res, response);
+        });
+    }
+    
+    function ext(res,language){
+        response = language === 'kinyarwanda'
+        ? `END Mwakoze gukoresha iyi serivisi`
+        : `END Thank you for using our services`;
+    sendResponse(res, response);        
+    }
+    
+    function sendResponse(res, response) {
+        res.set('Content-Type: text/plain');
+        res.send(response);
+    }
 });
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => console.log(`USSD server listening on http://localhost:${PORT}`));
