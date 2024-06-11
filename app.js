@@ -43,28 +43,28 @@ app.post('/ussd', (req, res) => {
     } else if (text == '1') {
         // Business logic for first level response
         response = `CON Hitamo Umukandida
-        1. Kamanzi Eric
-        2. Habimana Yves
-        3. Itangishaka Claude
-        4. Umwali Aliance`;
+        1. UMURUTASATE Claude
+        2. KABERA Jean Darmsene
+        3.RUGIRA Claude
+        4. UMURISA J'Darc`;
         sendResponse(res, response);
     } else if (text == '2') {
         response = `CON Select candidate
-        1. Kamanzi Eric
-        2. Habimana Yves
-        3. Itangishaka Claude
-        4. Umwali Aliance`;
+        1. UMURUTASATE Claude
+        2. KABERA Jean Darmsene
+        3.RUGIRA Claude
+        4. UMURISA J'Darc`;
         sendResponse(res, response);
 
         //FOR KINYARWANDA LANGUAGE
     } else if (text == '1*1') {
-        candidate = 'Kamanzi Eric';
+        candidate = 'UMURUTASATE Claude';
         response = `CON Emeza gutora ${candidate}
             1.Yego
             2.Oya`;
         sendResponse(res, response);
     } else if (text == '1*2') {
-        candidate = 'Habimana Yves';
+        candidate = 'KABERA Jean Darmsene';
         response = `CON Emeza gutora ${candidate}
             1.Yego
             2.Oya`;
@@ -76,7 +76,7 @@ app.post('/ussd', (req, res) => {
             2.Oya`;
         sendResponse(res, response);
     } else if (text == '1*4') {
-        candidate = 'Umwali Aliance';
+        candidate = 'UMURISA J'Darc';
         response = `CON Emeza gutora ${candidate}
             1.Yego
             2.Oya`;
@@ -84,13 +84,13 @@ app.post('/ussd', (req, res) => {
 
         //FOR ENGLISH USERS
     } else if (text == '2*1') {
-        candidate = 'Kamanzi Eric';
+        candidate = 'UMURUTASATE Claude';
         response = `CON Confirm to vote ${candidate}
             1.Yes
             2.No`;
         sendResponse(res, response);
     } else if (text == '2*2') {
-        candidate = 'Habimana Yves';
+        candidate = 'KABERA Jean Darmsene';
         response = `CON Confirm to vote ${candidate}
             1.Yes
             2.No`;
@@ -102,7 +102,7 @@ app.post('/ussd', (req, res) => {
             2.No`;
         sendResponse(res, response);
     } else if (text == '2*4') {
-        candidate = 'Umwali Aliance';
+        candidate = 'UMURISA J'Darc';
         response = `CON Confirm to vote ${candidate}
             1.Yes
             2.No`;
@@ -111,11 +111,11 @@ app.post('/ussd', (req, res) => {
         //VOTING (YES) IN KINYARWANDA
     } else if (text == '1*1*1') {
         language = 'kinyarwanda';
-        candidate = 'Kamanzi Eric';
+        candidate = 'UMURUTASATE Claude';
         checkVote(res, sessionId, serviceCode, phoneNumber, text, candidate, language);
     } else if (text == '1*2*1') {
         language = 'kinyarwanda';
-        candidate = 'Habimana Yves';
+        candidate = 'KABERA Jean Darmsene';
         checkVote(res, sessionId, serviceCode, phoneNumber, text, candidate, language);
     } else if (text == '1*3*1') {
         language = 'kinyarwanda';
@@ -123,17 +123,17 @@ app.post('/ussd', (req, res) => {
         checkVote(res, sessionId, serviceCode, phoneNumber, text, candidate, language);
     } else if (text == '1*4*1') {
         language = 'kinyarwanda';
-        candidate = 'Umwali Aliance';
+        candidate = 'UMURISA J'Darc';
         checkVote(res, sessionId, serviceCode, phoneNumber, text, candidate, language);
 
         //VOTING (YES) IN ENGLISH
     } else if (text == '2*1*1') {
         language = 'english';
-        candidate = 'Kamanzi Eric';
+        candidate = 'UMURUTASATE Claude';
         checkVote(res, sessionId, serviceCode, phoneNumber, text, candidate, language);
     } else if (text == '2*2*1') {
         language = 'english';
-        candidate = 'Habimana Yves';
+        candidate = 'KABERA Jean Darmsene';
         checkVote(res, sessionId, serviceCode, phoneNumber, text, candidate, language);
     } else if (text == '2*3*1') {
         language = 'english';
@@ -141,14 +141,14 @@ app.post('/ussd', (req, res) => {
         checkVote(res, sessionId, serviceCode, phoneNumber, text, candidate, language);
     } else if (text == '2*4*1') {
         language = 'english';
-        candidate = 'Umwali Aliance';
+        candidate = 'UMURISA J'Darc';
         checkVote(res, sessionId, serviceCode, phoneNumber, text, candidate, language);
 
         //IF USER SELECTED NO
-    } else if(text == '1*1*1*20' || text == '1*2*1*20' || text == '1*3*1*20' || text == '1*4*1*20'){
+    } else if(text == '1*1*1*00' || text == '1*2*1*00' || text == '1*3*1*00' || text == '1*4*1*00'){
         language = "kinyarwanda";
         getVotes(res,language);
-    }else if(text == '2*1*1*20' || text == '2*2*1*20' || text == '2*3*1*20' || text == '2*4*1*20'){
+    }else if(text == '2*1*1*00' || text == '2*2*1*00' || text == '2*3*1*00' || text == '2*4*1*00'){
         language = "english";
         getVotes(res,language);
     }else if(text == '1*1*1*0' || text == '1*2*1*0' || text == '1*3*1*0' || text == '1*4*1*0'){
@@ -195,10 +195,10 @@ app.post('/ussd', (req, res) => {
             if (result.length > 0) {
                 response = language === 'kinyarwanda'
                     ? `CON Wamaze gutora! Hitamo:
-                    20. Reba amajwi
+                    00. Reba amajwi
                     0. Sohoka`
                     : `CON You have already voted! Choose:
-                    20. View votes
+                    00. View votes
                     0. Exit`;
                 sendResponse(res, response);
             } else {
